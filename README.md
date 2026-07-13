@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DAX - Men's Clothing Store
+
+## Tech Stack
+
+- Frontend: Next.js 15, TypeScript, TailwindCSS, Redux Toolkit
+- Backend: Node.js, Express, TypeScript, MySQL2
+- Admin: Next.js 15, TypeScript, TailwindCSS
+- Database: MySQL
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/YOUR_USERNAME/dax.git
+cd dax
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Setup Backend
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd packages/backend
+cp .env.example .env
+# Edit .env with your values (DB credentials, JWT secret, Cloudinary, SMTP)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Setup Frontend
 
-## Learn More
+```bash
+cd frontend
+cp .env.local.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Setup Admin
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cd packages/admin
+cp .env.local.example .env.local
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 5. Database
 
-## Deploy on Vercel
+Import `packages/backend/schema.sql` into MySQL using phpMyAdmin or:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+mysql -u root -p dax_db < packages/backend/schema.sql
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Then run `packages/backend/migrations_update.sql` for any additional columns.
+
+### 6. Run all services
+
+```bash
+# From root — run each in a separate terminal
+npm run dev --workspace=packages/backend   # API on :5000
+npm run dev --workspace=frontend           # Store on :3000
+npm run dev --workspace=packages/admin     # Admin on :3002
+```
+
+## Default Admin Account
+
+- **Phone:** `71234567`
+- **Password:** `admin123`
+
+> ⚠️ Change these credentials immediately after first login in production.
+
+## URLs
+
+- Customer Store: <http://localhost:3000>
+- Admin Dashboard: <http://localhost:3002>
+- Backend API: <http://localhost:5000>
+
+## Docker (Production)
+
+```bash
+cp packages/backend/.env.example packages/backend/.env
+# Fill in production values in packages/backend/.env
+docker compose up --build
+```
+
+## Environment Variables
+
+See `.env.example` files in each package for required variables.
+
+Required for full functionality:
+
+- **DB_\*** — MySQL connection
+- **JWT_SECRET** — random secret string (min 32 chars)
+- **CLOUDINARY_\*** — image uploads (optional, falls back to local storage)
+- **SMTP_\*** — email notifications (optional, orders still work without it)
