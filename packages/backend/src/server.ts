@@ -30,12 +30,14 @@ app.use(cors({
       'http://localhost:3001', 
       'http://localhost:3002',
       process.env.CLIENT_URL,
-      process.env.ADMIN_URL
-    ]
-    if (!origin || allowed.includes(origin)) {
+      process.env.ADMIN_URL,
+      process.env.FRONTEND_URL
+    ].filter(Boolean) as string[]
+
+    if (!origin || allowed.some(url => origin === url || origin === url.replace(/\/$/, '') || url === origin.replace(/\/$/, ''))) {
       callback(null, true)
     } else {
-      callback(new Error('Not allowed by CORS'))
+      callback(new Error(`Not allowed by CORS: ${origin}`))
     }
   },
   credentials: true
@@ -48,7 +50,7 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')
 app.use((_req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' http://localhost:* ws://localhost:*; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https: http://localhost:* ws://localhost:*; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
   )
   next()
 })
