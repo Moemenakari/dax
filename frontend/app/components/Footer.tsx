@@ -55,9 +55,7 @@ export default function Footer() {
             Style meets quality at honest prices.
           </p>
           <div className="flex gap-3">
-            <SocialLink href="https://www.instagram.com/daxmenswear?igsh=MXdxdzE5bmZ4bTR1aA==" icon="instagram" />
-            <SocialLink href="https://facebook.com" icon="facebook" />
-            <SocialLink href="https://tiktok.com" icon="tiktok" />
+            <SocialLink href="https://www.instagram.com/dax_lb?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==" icon="instagram" />
             <SocialLink href="https://wa.me/96170474190" icon="whatsapp" />
           </div>
         </div>

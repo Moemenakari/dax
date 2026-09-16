@@ -307,4 +307,16 @@ router.put('/:id/cancel', protect, async (req: any, res: Response) => {
   }
 })
 
+// Delete order (admin)
+router.delete('/:id', protect, adminOnly, async (req: Request, res: Response) => {
+  try {
+    await db.execute('DELETE FROM order_items WHERE orderId = ?', [req.params.id])
+    await db.execute('DELETE FROM orders WHERE id = ?', [req.params.id])
+    res.json({ message: 'Order deleted successfully' })
+  } catch (err) {
+    console.error('Delete order error:', err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
 export default router

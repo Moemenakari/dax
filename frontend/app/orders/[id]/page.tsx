@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback, use, useRef } from 'react'
 import Link from 'next/link'
 import api from '../../lib/api'
@@ -249,7 +250,7 @@ export default function OrderDetailPage({ params: paramsPromise }: { params: Pro
           className="flex-1 border-2 border-gray-200 text-gray-700 py-3.5 rounded-full font-bold text-sm text-center hover:bg-gray-50 transition-colors">
           View All Orders
         </Link>
-        <a href="https://wa.me/96170474719" target="_blank" rel="noopener noreferrer"
+        <a href="https://wa.me/96170474190" target="_blank" rel="noopener noreferrer"
           className="flex-1 bg-green-500 text-white py-3.5 rounded-full font-bold text-sm text-center hover:bg-green-600 transition-colors inline-flex items-center justify-center gap-2">
           <WhatsAppIcon fontSize="small" /> Contact Us
         </a>
