@@ -32,11 +32,15 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
-    "@types/nodemailer": "^6.4.0",
     "@types/node": "^25.3.3",
+    "@types/nodemailer": "^6.4.0",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.31.1",
+    "lightningcss-linux-x64-musl": "^1.31.1"
   }
 }
