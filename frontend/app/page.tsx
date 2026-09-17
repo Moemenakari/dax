@@ -107,15 +107,20 @@ export default function HomePage() {
           api.get('/delivery/areas'),
           api.get('/homepage'),
         ])
-        if (saleRes.status === 'fulfilled' && Array.isArray(saleRes.value.data)) {
-          setSaleProducts(saleRes.value.data)
+
+        let fetchedSale = (saleRes.status === 'fulfilled' && Array.isArray(saleRes.value.data)) ? saleRes.value.data : []
+        let fetchedAll  = (allRes.status === 'fulfilled' && Array.isArray(allRes.value.data)) ? allRes.value.data : []
+
+        // If sale-specific fetch returned empty, filter items with salePrice or isSale from all products
+        if (fetchedSale.length === 0 && fetchedAll.length > 0) {
+          fetchedSale = fetchedAll.filter((p: any) => p.isSale || (p.salePrice && Number(p.salePrice) > 0))
         }
-        if (allRes.status === 'fulfilled' && Array.isArray(allRes.value.data)) {
-          setAllProducts(allRes.value.data)
-        }
-        if (reviewRes.status === 'fulfilled') setReviews(reviewRes.value.data)
-        if (faqRes.status === 'fulfilled') setFaq(faqRes.value.data)
-        if (deliveryRes.status === 'fulfilled') setDeliveryAreas(deliveryRes.value.data)
+
+        setSaleProducts(fetchedSale)
+        setAllProducts(fetchedAll)
+        if (reviewRes.status === 'fulfilled' && Array.isArray(reviewRes.value.data)) setReviews(reviewRes.value.data)
+        if (faqRes.status === 'fulfilled' && Array.isArray(faqRes.value.data)) setFaq(faqRes.value.data)
+        if (deliveryRes.status === 'fulfilled' && Array.isArray(deliveryRes.value.data)) setDeliveryAreas(deliveryRes.value.data)
         if (homepageRes.status === 'fulfilled' && homepageRes.value.data) {
           setContent({ ...defaultContent, ...homepageRes.value.data })
         }
