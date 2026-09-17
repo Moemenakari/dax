@@ -21,7 +21,7 @@ router.get('/', async (req: Request, res: Response) => {
     const params: any[] = []
 
     if (category) { query += ' AND p.category = ?'; params.push(category) }
-    if (sale === 'true' || sale === '1') { query += ' AND (p.isSale = true OR p.isSale = 1 OR (p.salePrice IS NOT NULL AND CAST(p.salePrice AS DECIMAL(10,2)) > 0))' }
+    if (sale === 'true' || sale === '1') { query += ' AND (p.isSale = true OR p.isSale = 1 OR p.salePrice IS NOT NULL)' }
     if (trendy === 'true' || trendy === '1') { query += ' AND p.isTopTrendy = true' }
     if (featured === 'true' || featured === '1') { query += ' AND p.isFeatured = true' }
     if (search) { 
@@ -31,7 +31,10 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     query += ' ORDER BY p.createdAt DESC'
-    if (limit) { query += ' LIMIT ?'; params.push(Number(limit)) }
+    if (limit && !isNaN(Number(limit))) {
+      const limitNum = Math.max(1, Math.min(100, parseInt(String(limit), 10)))
+      query += ` LIMIT ${limitNum}`
+    }
 
     const [products]: any = await db.execute(query, params)
     res.json(products)
