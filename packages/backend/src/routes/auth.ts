@@ -194,14 +194,16 @@ function sendToken(user: any, status: number, res: Response) {
     { expiresIn: '30d' }
   )
 
+  const isProd = process.env.NODE_ENV === 'production'
+
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000,
   })
 
-  res.status(status).json({ user })
+  res.status(status).json({ user, token })
 }
 
 export default router

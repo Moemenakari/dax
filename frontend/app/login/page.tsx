@@ -43,18 +43,20 @@ export default function LoginPage() {
     setLoading(true)
     try {
       if (mode === 'login') {
-        await api.post('/auth/login', {
+        const res = await api.post('/auth/login', {
           phone: form.phone,
           password: form.password,
         })
+        if (res.data.token) localStorage.setItem('token', res.data.token)
         router.push('/')
         router.refresh()
       } else if (mode === 'signup') {
-        await api.post('/auth/register', {
+        const res = await api.post('/auth/register', {
           name: form.name,
           phone: form.phone,
           password: form.password,
         })
+        if (res.data.token) localStorage.setItem('token', res.data.token)
         router.push('/')
         router.refresh()
       } else if (mode === 'forgot') {

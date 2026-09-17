@@ -30,6 +30,9 @@ export default function LoginPage() {
         setError('Access denied. Admin accounts only.')
         return
       }
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token)
+      }
       router.replace('/')
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid phone or password')

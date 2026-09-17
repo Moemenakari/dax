@@ -22,6 +22,7 @@ import couponRoutes        from './routes/coupons'
 import { errorHandler }    from './middleware/errorHandler'
 
 const app = express()
+app.set('trust proxy', 1)
 
 app.use(cors({
   origin: function(origin, callback) {
