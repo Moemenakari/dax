@@ -19,8 +19,11 @@ interface Product {
 export default function ProductCard({ product }: { product: Product }) {
   const dispatch = useDispatch()
 
-  const discountPercent = product.salePrice
-    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+  const numPrice = Number(product.price) || 0
+  const numSalePrice = product.salePrice !== null && product.salePrice !== undefined ? Number(product.salePrice) : null
+
+  const discountPercent = numSalePrice !== null && numPrice > 0
+    ? Math.round(((numPrice - numSalePrice) / numPrice) * 100)
     : null
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -29,8 +32,8 @@ export default function ProductCard({ product }: { product: Product }) {
     dispatch(addItem({
       productId: product.id,
       title: product.title,
-      price: product.price,
-      salePrice: product.salePrice,
+      price: numPrice,
+      salePrice: numSalePrice,
       size: 'M',
       quantity: 1,
       stock: 99,
@@ -88,13 +91,13 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {/* Price */}
         <div className="flex items-center gap-2">
-          {product.salePrice ? (
+          {numSalePrice !== null ? (
             <>
-              <span className="font-bold text-[#e63946]">${product.salePrice}</span>
-              <span className="text-gray-400 text-xs line-through">${product.price}</span>
+              <span className="font-bold text-[#e63946]">${numSalePrice}</span>
+              <span className="text-gray-400 text-xs line-through">${numPrice}</span>
             </>
           ) : (
-            <span className="font-bold">${product.price}</span>
+            <span className="font-bold">${numPrice}</span>
           )}
         </div>
       </div>

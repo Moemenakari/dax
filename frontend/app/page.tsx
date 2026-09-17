@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import ProductCard from './components/ProductCard'
 import api from './lib/api'
@@ -9,6 +9,9 @@ import InventoryIcon from '@mui/icons-material/Inventory'
 import CheckroomIcon from '@mui/icons-material/Checkroom'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
+import StorefrontIcon from '@mui/icons-material/Storefront'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
 const CATEGORIES = [
   { name: 'Jeans', icon: <CheckroomIcon fontSize="inherit" />, slug: 'Jeans' },
@@ -77,23 +80,39 @@ const defaultContent: HomepageContent = {
 
 export default function HomePage() {
   const [saleProducts, setSaleProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [faq, setFaq] = useState<FAQItem[]>([])
   const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([])
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [content, setContent] = useState<HomepageContent>(defaultContent)
 
+  const carouselRef = useRef<HTMLDivElement>(null)
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -320 : 320
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [saleRes, reviewRes, faqRes, deliveryRes, homepageRes] = await Promise.allSettled([
-          api.get('/products', { params: { sale: true, limit: 8 } }),
+        const [saleRes, allRes, reviewRes, faqRes, deliveryRes, homepageRes] = await Promise.allSettled([
+          api.get('/products', { params: { sale: true, limit: 12 } }),
+          api.get('/products', { params: { limit: 20 } }),
           api.get('/reviews'),
           api.get('/faq'),
           api.get('/delivery/areas'),
           api.get('/homepage'),
         ])
-        if (saleRes.status === 'fulfilled') setSaleProducts(saleRes.value.data)
+        if (saleRes.status === 'fulfilled' && Array.isArray(saleRes.value.data)) {
+          setSaleProducts(saleRes.value.data)
+        }
+        if (allRes.status === 'fulfilled' && Array.isArray(allRes.value.data)) {
+          setAllProducts(allRes.value.data)
+        }
         if (reviewRes.status === 'fulfilled') setReviews(reviewRes.value.data)
         if (faqRes.status === 'fulfilled') setFaq(faqRes.value.data)
         if (deliveryRes.status === 'fulfilled') setDeliveryAreas(deliveryRes.value.data)
@@ -235,6 +254,63 @@ export default function HomePage() {
             <div className="text-center py-12 text-gray-400">
               <p className="text-4xl text-gray-300 mb-3"><LocalOfferIcon fontSize="inherit" /></p>
               <p className="font-medium">Sale products coming soon!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+
+      {/* ═══════ 3.5 ALL PRODUCTS CAROUSEL ═══════ */}
+      <section className="bg-white py-12 md:py-20 border-t border-b border-gray-100 overflow-hidden" id="all-products-carousel">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <span className="text-[#e63946] text-xs font-bold tracking-[0.2em] uppercase mb-2 inline-flex items-center gap-1.5">
+                <StorefrontIcon fontSize="small" /> Our Catalogue
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black">Explore All Products</h2>
+              <p className="text-gray-400 text-sm mt-1">Browse our complete collection of apparel & essentials.</p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => scrollCarousel('left')}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-[#e63946] hover:text-white hover:border-[#e63946] transition-all shadow-sm"
+                aria-label="Scroll left"
+              >
+                <NavigateBeforeIcon />
+              </button>
+              <button
+                onClick={() => scrollCarousel('right')}
+                className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-[#e63946] hover:text-white hover:border-[#e63946] transition-all shadow-sm"
+                aria-label="Scroll right"
+              >
+                <NavigateNextIcon />
+              </button>
+              <Link 
+                href="/shop" 
+                className="text-sm font-bold text-white bg-[#0f0f0f] hover:bg-[#e63946] px-5 py-2 rounded-full transition-colors ml-2 hidden sm:inline-flex items-center"
+              >
+                View Full Shop
+              </Link>
+            </div>
+          </div>
+
+          {allProducts.length > 0 ? (
+            <div
+              ref={carouselRef}
+              className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-none snap-x snap-mandatory py-3 px-1 scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {allProducts.map(p => (
+                <div key={p.id} className="min-w-[240px] sm:min-w-[260px] md:min-w-[280px] max-w-[280px] shrink-0 snap-start">
+                  <ProductCard product={p} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-400">
+              <p className="font-medium">No products found.</p>
             </div>
           )}
         </div>

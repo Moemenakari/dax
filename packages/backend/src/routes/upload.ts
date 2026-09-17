@@ -10,14 +10,21 @@ const API_KEY    = process.env.CLOUDINARY_API_KEY || ''
 const API_SECRET = process.env.CLOUDINARY_API_SECRET || ''
 
 const useCloudinary =
-  CLOUD_NAME && CLOUD_NAME !== 'your_cloud_name' &&
-  API_KEY    && API_KEY    !== 'your_api_key' &&
-  API_SECRET && API_SECRET !== 'your_api_secret'
+  Boolean(process.env.CLOUDINARY_URL) ||
+  Boolean(
+    CLOUD_NAME && CLOUD_NAME !== 'your_cloud_name' &&
+    API_KEY    && API_KEY    !== 'your_api_key' &&
+    API_SECRET && API_SECRET !== 'your_api_secret'
+  )
 
 if (useCloudinary) {
-  cloudinary.config({ cloud_name: CLOUD_NAME, api_key: API_KEY, api_secret: API_SECRET })
+  if (process.env.CLOUDINARY_URL) {
+    cloudinary.config()
+  } else {
+    cloudinary.config({ cloud_name: CLOUD_NAME, api_key: API_KEY, api_secret: API_SECRET })
+  }
 } else {
-  console.log('⚠️  Cloudinary not configured — using local file storage for uploads')
+  console.log('⚠️  Cloudinary not configured — using local file storage for uploads in development')
 }
 
 const UPLOAD_DIR = path.resolve(process.cwd(), 'public/uploads')
@@ -44,7 +51,14 @@ router.post('/', protect, adminOnly, upload.single('image'),
         return res.json({ url: result.secure_url })
       }
 
-      // Local fallback — save to public/uploads/
+      // In production (Render), block local file storage to prevent image loss on disk wipe
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(500).json({
+          message: 'Cloudinary storage configuration is missing on server. Please configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in Render Environment Variables.'
+        })
+      }
+
+      // Local fallback for local development — save to public/uploads/
       if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
 
       const ext  = (req.file.mimetype.split('/')[1] || 'jpg').replace('jpeg', 'jpg')

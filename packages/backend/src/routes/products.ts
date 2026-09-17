@@ -11,16 +11,19 @@ router.get('/', async (req: Request, res: Response) => {
 
     let query = `
       SELECT p.*,
-        (SELECT url FROM product_images WHERE productId = p.id AND isPrimary = true LIMIT 1) as image
+        COALESCE(
+          (SELECT url FROM product_images WHERE productId = p.id AND isPrimary = true LIMIT 1),
+          (SELECT url FROM product_images WHERE productId = p.id LIMIT 1)
+        ) as image
       FROM products p
       WHERE p.isActive = true
     `
     const params: any[] = []
 
     if (category) { query += ' AND p.category = ?'; params.push(category) }
-    if (sale === 'true') { query += ' AND p.salePrice IS NOT NULL' }
-    if (trendy === 'true') { query += ' AND p.isTopTrendy = true' }
-    if (featured === 'true') { query += ' AND p.isFeatured = true' }
+    if (sale === 'true' || sale === '1') { query += ' AND (p.isSale = true OR (p.salePrice IS NOT NULL AND p.salePrice > 0))' }
+    if (trendy === 'true' || trendy === '1') { query += ' AND p.isTopTrendy = true' }
+    if (featured === 'true' || featured === '1') { query += ' AND p.isFeatured = true' }
     if (search) { 
       query += ' AND (p.title LIKE ? OR p.description LIKE ? OR p.category LIKE ?)'
       const s = `%${search}%`
