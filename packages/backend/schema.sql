@@ -227,4 +227,4 @@ INSERT IGNORE INTO delivery_areas (id, areaName, price, estimatedTime, isActive)
 -- Password: admin123
 INSERT IGNORE INTO users (id, name, email, phone, password, role)
 VALUES (1, 'Admin', 'admin@dax.com', '71234567',
-  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uBi2', 'ADMIN');
+  '$2a$12$IxolS0Q8Yh8Z4fjhXwc1kOIM/EbK6sUtZhLm4PZMj6gW1e.TwID1a', 'ADMIN');
