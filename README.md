@@ -7,6 +7,43 @@
 
 ---
 
+## Live Deployments & Cloud Infrastructure
+
+| Component | Platform / Host | Live URL / Endpoint | Technology | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Customer Storefront** | **Vercel** | [dax-clothes-store.vercel.app](https://dax-clothes-store.vercel.app) | Next.js 15, React 19, Tailwind CSS | High-conversion customer e-commerce store |
+| **Admin Dashboard** | **Vercel** | [dax-admin.vercel.app](https://dax-admin.vercel.app) | Next.js 15, Redux Toolkit | Inventory, orders, pricing & sale management |
+| **Backend REST API** | **Render** | [dax-backend.onrender.com](https://dax-backend.onrender.com) | Express, Node.js, TypeScript | Core business logic, auth, upload & database bridge |
+| **Database** | **TiDB Cloud** | AWS `eu-central-1` (Port 4000) | MySQL 8.0 Compatible Serverless | Relational database with SSL connection pooling |
+| **Media & Asset CDN** | **Supabase Storage** | [supabase.co](https://vhpovvxpqlmvqsrwqdzp.supabase.co) | Supabase Object Storage (`products` bucket) | Permanent, geo-unrestricted image hosting |
+
+---
+
+## Engineering Spotlight — Smart Solutions & Architecture
+
+> **Engineering Highlights:**  
+> Built by a smart, top-tier student engineer who designed, debugged, and delivered a complete production-ready multi-cloud architecture from scratch. When confronted with real-world edge cases (regional service geoblocking, ephemeral disk container wipes, cross-domain cookie policies, CI/CD branch syncs), every challenge was solved logically with clean, permanent engineering.
+
+### Key Problems Solved:
+
+1. **Cloudinary Regional Geo-blocking $\rightarrow$ Supabase Storage Migration:**  
+   *Problem:* Cloudinary blocked service in Lebanon, causing upload failures (HTTP 500/503).  
+   *Solution:* Re-architected upload pipeline to Supabase Storage with `@supabase/supabase-js`, creating a public `products` bucket with privileged service-role backend access. Product photos are now permanently persisted without risk of deletion or regional restrictions.
+2. **Render Ephemeral Filesystem Image Wipe:**  
+   *Problem:* Local disk files on Render containers vanish on every restart or redeploy.  
+   *Solution:* Decoupled media from the container disk entirely. All uploaded images stream directly to Supabase Storage, saving permanent public CDN URLs into TiDB Cloud.
+3. **Product "Sale" Placement & Single Source of Truth:**  
+   *Problem:* Inconsistent sale filtering, missing server-side price validation, and broken home/shop sync.  
+   *Solution:* Standardized on `isSale = true` as the sole source of truth across the entire app. Added strict server-side validation (`salePrice < price`, required sale price when flagged, auto-clearing sale price when unflagged), randomized sort support (`?sort=random`), and automatic query parameter filtering on the Shop catalog (`/shop?sale=true`).
+4. **Render Git CI/CD Branch Synchronization:**  
+   *Problem:* Render was tracking `main`, but commits were pushed to `master`, causing Render to run outdated code.  
+   *Solution:* Audited remote branch tracking and pushed atomic commits directly to `origin/main`, triggering automated continuous deployment.
+5. **Cross-Origin Security & Cross-Domain Cookies (Vercel $\leftrightarrow$ Render):**  
+   *Problem:* Modern browsers blocked cross-domain session cookies between Vercel (`*.vercel.app`) and Render (`*.onrender.com`).  
+   *Solution:* Configured Express CORS with dynamic origin matching and HTTPS cookie flags (`sameSite: 'none'`, `secure: true`, `httpOnly: true`) alongside Authorization Bearer header fallback.
+
+---
+
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
@@ -338,16 +375,20 @@ The database is built on a **MySQL 8.0 / TiDB Cloud Serverless** structure. Conn
 
 ## 9. Image & File Storage System
 
-Image management in DAX uses a hybrid approach designed for ephemeral cloud platforms like Render:
+Image management in DAX uses a permanent cloud storage approach designed for ephemeral container platforms like Render:
 
-1. **Production Mode (Cloudinary):**  
-   When Cloudinary credentials (`CLOUDINARY_CLOUD_NAME`, `API_KEY`, `API_SECRET` or `CLOUDINARY_URL`) are provided, uploaded images are streamed directly to Cloudinary (`folder: 'dax'`). The permanent HTTPS URL returned by Cloudinary (`https://res.cloudinary.com/...`) is saved to the database.
-2. **Production Safeguard:**  
-   If Cloudinary credentials are missing in production on Render, file uploads fail with an explicit 500 error explaining that Cloudinary configuration is required, preventing temporary files from being lost when Render's container filesystem restarts.
-3. **Development Mode (Local Disk Fallback):**  
-   In local development, if Cloudinary is omitted, files are saved locally to `packages/backend/public/uploads/` and served via static URL (`http://localhost:5000/uploads/...`).
-4. **CDN Image Migration Tool:**  
-   The script `packages/backend/migrate_local_images.js` is provided to scan the database and update any temporary local `/uploads/` URLs to permanent, high-resolution CDN URLs.
+1. **Production Mode (Supabase Storage):**  
+   Uploaded product images stream directly to a public Supabase Storage bucket (`products`) via `@supabase/supabase-js`. The backend authenticates with the privileged service-role / API key, bypassing client-side RLS and guaranteeing high availability. Permanent public CDN URLs (`https://<project-id>.supabase.co/storage/v1/object/public/products/...`) are saved to the database.
+2. **Permanent Data Guarantee:**  
+   Unlike local storage on ephemeral container hosts (Render), images stored in Supabase are safely retained permanently and will never disappear during server redeploys or restarts.
+3. **Robust HTTP Error Codes:**  
+   The upload endpoint (`/api/upload`) delivers precise status codes:
+   - `400`: Missing file or disallowed file type (only JPEG, PNG, WebP, GIF, AVIF allowed).
+   - `413`: File size exceeds maximum limit (5 MB).
+   - `502`: Upstream storage provider error (with detailed error logs on the server).
+   - `503`: Storage service credentials missing on server.
+4. **Development Mode (Local Disk Fallback):**  
+   In offline local development if Supabase credentials are not supplied, files fallback safely to `packages/backend/public/uploads/` and are served statically.
 
 ---
 
