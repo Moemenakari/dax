@@ -102,10 +102,23 @@ export default function ProductsPage() {
   }
 
   const handleSubmit = async () => {
+    const numPrice = Number(form.price)
+    const numSalePrice = form.salePrice ? Number(form.salePrice) : null
+
+    if (numSalePrice !== null && numSalePrice >= numPrice) {
+      alert('Sale price must be less than the original price.')
+      return
+    }
+    if (form.isSale && numSalePrice === null) {
+      alert('Please enter a sale price when marking a product as Sale.')
+      return
+    }
+
     const data = {
       ...form,
-      price: Number(form.price),
-      salePrice: form.salePrice ? Number(form.salePrice) : null,
+      price: numPrice,
+      salePrice: numSalePrice,
+      isSale: form.isSale || (numSalePrice !== null && numSalePrice > 0),
       sizes: form.sizes.filter(s => s.stock > 0),
     }
     try {
@@ -143,11 +156,15 @@ export default function ProductsPage() {
         credentials: 'include',
         body: formData
       })
-      if (!res.ok) throw new Error('Upload failed')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null)
+        const msg = errData?.message || `Upload failed (HTTP ${res.status})`
+        throw new Error(msg)
+      }
       const data = await res.json()
       setForm({ ...form, images: [...form.images, { url: data.url }] })
-    } catch (err) {
-      alert("Upload failed. Try using image URL instead.")
+    } catch (err: any) {
+      alert(err?.message || "Upload failed. Try using image URL instead.")
     }
     setUploading(false)
   }
@@ -210,7 +227,10 @@ export default function ProductsPage() {
                   className="border-2 border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-slate-900" />
               </div>
 
-              <input type="number" placeholder="Sale Price (optional)" value={form.salePrice} onChange={e => setForm({ ...form, salePrice: e.target.value })}
+              <input type="number" placeholder="Sale Price (optional)" value={form.salePrice} onChange={e => {
+                  const val = e.target.value
+                  setForm({ ...form, salePrice: val, isSale: val ? true : false })
+                }}
                 className="w-full border-2 border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-slate-900" />
               
               {/* Flags */}
@@ -344,7 +364,7 @@ export default function ProductsPage() {
                     <div className="flex flex-wrap gap-1">
                       {p.isFeatured && <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md">Featured</span>}
                       {p.isTopTrendy && <span className="text-[10px] font-bold px-2 py-0.5 bg-purple-100 text-purple-700 rounded-md">Trending</span>}
-                      {p.salePrice && <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-md">Sale</span>}
+                      {p.isSale && <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-md">Sale</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">

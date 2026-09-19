@@ -34,7 +34,10 @@ function ShopContent() {
     const urlSearch = searchParams.get('search')
     
     if (urlCat) {
-      const found = CATEGORIES.find(c => c.toLowerCase().replace(' ', '-') === urlCat.toLowerCase())
+      const found = CATEGORIES.find(c => 
+        c.toLowerCase() === urlCat.toLowerCase() || 
+        c.toLowerCase().replace(/\s+/g, '-') === urlCat.toLowerCase()
+      )
       if (found) setCategory(found)
     }
     if (urlSale === 'true') setSaleOnly(true)

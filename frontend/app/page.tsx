@@ -100,7 +100,7 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [saleRes, allRes, reviewRes, faqRes, deliveryRes, homepageRes] = await Promise.allSettled([
-          api.get('/products', { params: { sale: true, limit: 12 } }),
+          api.get('/products', { params: { sale: true, limit: 4 } }),
           api.get('/products', { params: { limit: 20 } }),
           api.get('/reviews'),
           api.get('/faq'),
@@ -108,13 +108,8 @@ export default function HomePage() {
           api.get('/homepage'),
         ])
 
-        let fetchedSale = (saleRes.status === 'fulfilled' && Array.isArray(saleRes.value.data)) ? saleRes.value.data : []
-        let fetchedAll  = (allRes.status === 'fulfilled' && Array.isArray(allRes.value.data)) ? allRes.value.data : []
-
-        // If sale-specific fetch returned empty, filter items with salePrice or isSale from all products
-        if (fetchedSale.length === 0 && fetchedAll.length > 0) {
-          fetchedSale = fetchedAll.filter((p: any) => p.isSale || (p.salePrice && Number(p.salePrice) > 0))
-        }
+        const fetchedSale = (saleRes.status === 'fulfilled' && Array.isArray(saleRes.value.data)) ? saleRes.value.data : []
+        const fetchedAll  = (allRes.status === 'fulfilled' && Array.isArray(allRes.value.data)) ? allRes.value.data : []
 
         setSaleProducts(fetchedSale)
         setAllProducts(fetchedAll)
@@ -231,6 +226,7 @@ export default function HomePage() {
 
 
       {/* ═══════ 3. SALES SECTION ═══════ */}
+      {saleProducts.length > 0 && (
       <section className="bg-gray-50 py-12 md:py-20" id="sales-section">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
@@ -249,20 +245,14 @@ export default function HomePage() {
             </Link>
           </div>
           
-          {saleProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-              {saleProducts.slice(0, 8).map(p => (
+              {saleProducts.slice(0, 4).map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12 text-gray-400">
-              <p className="text-4xl text-gray-300 mb-3"><LocalOfferIcon fontSize="inherit" /></p>
-              <p className="font-medium">Sale products coming soon!</p>
-            </div>
-          )}
         </div>
       </section>
+      )}
 
 
       {/* ═══════ 3.5 ALL PRODUCTS CAROUSEL ═══════ */}

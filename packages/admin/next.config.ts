@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: '**.supabase.co' },
       { protocol: 'http', hostname: 'localhost' },
     ],
   },

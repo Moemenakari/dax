@@ -7,7 +7,7 @@ const router = Router()
 // GET all products (with filters)
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { category, sale, trendy, featured, search, limit } = req.query
+    const { category, sale, trendy, featured, search, limit, sort } = req.query
 
     let query = `
       SELECT p.*,
@@ -21,7 +21,7 @@ router.get('/', async (req: Request, res: Response) => {
     const params: any[] = []
 
     if (category) { query += ' AND p.category = ?'; params.push(category) }
-    if (sale === 'true' || sale === '1') { query += ' AND (p.isSale = true OR p.isSale = 1 OR p.salePrice IS NOT NULL)' }
+    if (sale === 'true' || sale === '1') { query += ' AND p.isSale = true' }
     if (trendy === 'true' || trendy === '1') { query += ' AND p.isTopTrendy = true' }
     if (featured === 'true' || featured === '1') { query += ' AND p.isFeatured = true' }
     if (search) { 
@@ -30,7 +30,7 @@ router.get('/', async (req: Request, res: Response) => {
       params.push(s, s, s)
     }
 
-    query += ' ORDER BY p.createdAt DESC'
+    query += sort === 'random' ? ' ORDER BY RAND()' : ' ORDER BY p.createdAt DESC'
     if (limit && !isNaN(Number(limit))) {
       const limitNum = Math.max(1, Math.min(100, parseInt(String(limit), 10)))
       query += ` LIMIT ${limitNum}`
@@ -79,14 +79,32 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST create product (admin only)
 router.post('/', protect, adminOnly, async (req: Request, res: Response) => {
   try {
-    const { title, description, category, price, salePrice, 
+    const { title, description, category, price, salePrice,
             isTopTrendy, isFeatured, isSale, images, sizes } = req.body
+
+    if (!title || !price) {
+      return res.status(400).json({ message: 'Title and price are required.' })
+    }
+
+    const numPrice     = Number(price)
+    const numSalePrice = salePrice ? Number(salePrice) : null
+
+    // Server-side sale validation
+    if (numSalePrice !== null && numSalePrice >= numPrice) {
+      return res.status(400).json({ message: 'Sale price must be less than the original price.' })
+    }
+    if (isSale && numSalePrice === null) {
+      return res.status(400).json({ message: 'A sale price is required when the product is marked as On Sale.' })
+    }
+
+    // Auto-sync: if isSale is false, always clear salePrice
+    const finalSalePrice = isSale ? numSalePrice : null
 
     const [result]: any = await db.execute(
       `INSERT INTO products 
        (title, description, category, price, salePrice, isTopTrendy, isFeatured, isSale)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title, description, category, price, salePrice || null,
+      [title, description, category, numPrice, finalSalePrice,
        isTopTrendy || false, isFeatured || false, isSale || false]
     )
 
@@ -122,16 +140,30 @@ router.post('/', protect, adminOnly, async (req: Request, res: Response) => {
 // PUT update product (admin only)
 router.put('/:id', protect, adminOnly, async (req: Request, res: Response) => {
   try {
-    const { title, description, category, price, salePrice, 
+    const { title, description, category, price, salePrice,
             isTopTrendy, isFeatured, isSale, isActive, images, sizes } = req.body
+
+    const numPrice     = Number(price)
+    const numSalePrice = salePrice ? Number(salePrice) : null
+
+    // Server-side sale validation
+    if (numSalePrice !== null && numSalePrice >= numPrice) {
+      return res.status(400).json({ message: 'Sale price must be less than the original price.' })
+    }
+    if (isSale && numSalePrice === null) {
+      return res.status(400).json({ message: 'A sale price is required when the product is marked as On Sale.' })
+    }
+
+    // Auto-sync: if isSale is false, always clear salePrice in DB
+    const finalSalePrice = isSale ? numSalePrice : null
 
     await db.execute(
       `UPDATE products SET
        title=?, description=?, category=?, price=?,
        salePrice=?, isTopTrendy=?, isFeatured=?, isSale=?, isActive=?
        WHERE id=?`,
-      [title, description, category, price, salePrice || null,
-       isTopTrendy || false, isFeatured || false, isSale || false, 
+      [title, description, category, numPrice, finalSalePrice,
+       isTopTrendy || false, isFeatured || false, isSale || false,
        isActive !== false, req.params.id]
     )
 

@@ -80,11 +80,15 @@ export default function ProductEditPage({ params: paramsPromise }: { params: Pro
         credentials: 'include',
         body: formData
       })
-      if (!res.ok) throw new Error('Upload failed')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null)
+        const msg = errData?.message || `Upload failed (HTTP ${res.status})`
+        throw new Error(msg)
+      }
       const data = await res.json()
       setForm({ ...form, images: [...form.images, { url: data.url }] })
-    } catch (err) {
-      alert("Upload failed. Try using image URL instead.")
+    } catch (err: any) {
+      alert(err?.message || "Upload failed. Try using image URL instead.")
     }
     setUploading(false)
   }
@@ -108,10 +112,22 @@ export default function ProductEditPage({ params: paramsPromise }: { params: Pro
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
+    const numSalePrice = form.salePrice ? Number(form.salePrice) : null
+    if (numSalePrice !== null && numSalePrice >= Number(form.price)) {
+      setMessage('❌ Sale price must be less than the original price.')
+      return
+    }
+    if (form.isSale && numSalePrice === null) {
+      setMessage('❌ Please enter a sale price when marking a product as Sale.')
+      return
+    }
     setSaving(true)
     setMessage('')
     try {
-      await api.put(`/products/${params.id}`, form)
+      await api.put(`/products/${params.id}`, {
+        ...form,
+        isSale: form.isSale || (numSalePrice !== null && numSalePrice > 0),
+      })
       setMessage('✅ Product updated successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch {
@@ -185,7 +201,7 @@ export default function ProductEditPage({ params: paramsPromise }: { params: Pro
                     title="Sale Price"
                     type="number"
                     value={form.salePrice || ''}
-                    onChange={e => setForm({...form, salePrice: e.target.value ? Number(e.target.value) : null})}
+                    onChange={e => setForm({...form, salePrice: e.target.value ? Number(e.target.value) : null, isSale: e.target.value ? true : false})}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all"
                   />
                 </div>
