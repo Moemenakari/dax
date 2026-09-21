@@ -1,10 +1,25 @@
 # A Programming Challenge — Learning, Building & Exploring
 
-> **Personal Note & Project Context:**  
-> This project was built as a personal programming challenge for learning, experimentation, and self-improvement. The primary goal was to experience building a real, complete Full-Stack web application from scratch—tackling everything from database schema design and Express REST API architecture to modern Next.js user interfaces, administrative controls, and cloud deployment.  
->  
-> This `README.md` serves as a comprehensive **Technical Memory & Documentation**. It records architectural decisions, database schemas, API routes, environment configurations, and deployment procedures so I can return to this repository anytime in the future and instantly understand how every piece was constructed and connected.
+# A Programming Challenge — Learning, Building & Exploring
 
+> **Personal Note & Project Context:**
+> This project was built as a personal programming challenge for learning,
+> experimentation, and self-improvement. The primary goal was to experience
+> building a real, complete Full-Stack web application from scratch—tackling
+> everything from database schema design and Express REST API architecture to
+> modern Next.js user interfaces, administrative controls, and cloud deployment.
+>
+> **The credentials shown in this README are published on purpose.** DAX is a
+> demo store — no real customers, no real payments, no real data. Publishing
+> them means anyone reviewing my work can log into the admin panel and try
+> every feature without asking me for access. In a commercial project these
+> would live only in environment variables, never in the repository.
+>
+> This `README.md` serves as a comprehensive **Technical Memory &
+> Documentation**. It records architectural decisions, database schemas, API
+> routes, environment configurations, and deployment procedures so I can return
+> to this repository anytime in the future and instantly understand how every
+> piece was constructed and connected.
 ---
 
 ## Live Deployments & Cloud Infrastructure
