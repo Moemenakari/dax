@@ -1,7 +1,4 @@
 # A Programming Challenge — Learning, Building & Exploring
-
-# A Programming Challenge — Learning, Building & Exploring
-
 > **Personal Note & Project Context:**
 > This project was built as a personal programming challenge for learning,
 > experimentation, and self-improvement. The primary goal was to experience
