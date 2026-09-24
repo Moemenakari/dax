@@ -151,20 +151,10 @@ export default function ProductsPage() {
     try {
       const formData = new FormData()
       formData.append('image', file)
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/upload` : 'http://localhost:5000/api/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      })
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null)
-        const msg = errData?.message || `Upload failed (HTTP ${res.status})`
-        throw new Error(msg)
-      }
-      const data = await res.json()
+      const { data } = await api.post('/upload', formData)
       setForm({ ...form, images: [...form.images, { url: data.url }] })
     } catch (err: any) {
-      alert(err?.message || "Upload failed. Try using image URL instead.")
+      alert(err?.response?.data?.message || err?.message || "Upload failed. Try using image URL instead.")
     }
     setUploading(false)
   }
