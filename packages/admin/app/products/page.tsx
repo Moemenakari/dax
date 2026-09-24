@@ -198,13 +198,18 @@ export default function ProductsPage() {
       {/* Product Form Modal */}
       {showForm && (
         <>
-          {/* Backdrop — click outside to close */}
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => resetForm()} />
-          {/* Scrollable container — pointer-events-none so clicks pass through to backdrop */}
-          <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
-            <div className="flex items-start justify-center min-h-full pt-10 px-4 pb-10">
-              {/* White box — pointer-events-auto to capture its own clicks */}
-              <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl pointer-events-auto">
+          {/* Backdrop — visual only */}
+          <div className="fixed inset-0 z-[60] bg-black/40" />
+          {/* Scrollable container — closes on clicks outside the white box */}
+          <div
+            className="fixed inset-0 z-[70] overflow-y-auto overscroll-contain"
+            onClick={e => { if (e.target === e.currentTarget) resetForm() }}
+          >
+            <div
+              className="flex items-start justify-center min-h-full py-10 px-4"
+              onClick={e => { if (e.target === e.currentTarget) resetForm() }}
+            >
+              <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
               <h2 className="font-black text-lg">{editingId ? 'Edit Product' : 'Add Product'}</h2>
               <button onClick={resetForm} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 text-xl font-bold transition-colors">✕</button>
